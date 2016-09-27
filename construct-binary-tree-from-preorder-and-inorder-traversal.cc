@@ -10,54 +10,25 @@
  */
 class Solution {
 public:
+    map<int, int> in_map_;
     TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
-    	TreeNode* root = NULL;
-		if (preorder.empty()) return root;
-		root = new TreeNode(preorder[0]);
-		vector<int> left_preorder;
-		vector<int> left_inorder;
-		vector<int> right_preorder;
-		vector<int> right_inorder;
-		findSubInorder(inorder, root->val, &left_inorder, &right_inorder);
-		findSubPreorder(preorder, left_inorder.size(), &left_preorder, &right_preorder);
-		root->left = buildTree(left_preorder, left_inorder);
-		root->right = buildTree(right_preorder, right_inorder);
-		return root;
+        int n = inorder.size();
+        for (int i = 0; i < n; ++i) {
+            in_map_[inorder[i]] = i;
+        }
+        return dfs(inorder , 0, n-1, preorder, 0, n-1);
     }
-	void findSubPreorder(const vector<int>& preorder_vec,
-				  const int& sep_index,
-				  vector<int>* left_preorder_vec_ptr,
-				  vector<int>* right_preorder_vec_ptr) {
-		vector<int>& left_preorder_vec = *left_preorder_vec_ptr;
-		vector<int>& right_preorder_vec = *right_preorder_vec_ptr;
-		// get preorder
-		for (int i = 1; i < preorder_vec.size(); ++i) {
-			if (i <= sep_index) {
-				left_preorder_vec.push_back(preorder_vec[i]);
-			} else {
-				right_preorder_vec.push_back(preorder_vec[i]);
-			}
-		}
 
-	}
-	void findSubInorder(const vector<int>& inorder_vec,
-				  const int& find_value,
-				  vector<int>* left_inorder_vec_ptr,
-				  vector<int>* right_inorder_vec_ptr) {
-		vector<int>& left_inorder_vec = *left_inorder_vec_ptr;
-		vector<int>& right_inorder_vec = *right_inorder_vec_ptr;
-		// get inorder
-		bool left_flag = true;
-		for (int i = 0; i < inorder_vec.size(); ++i) {
-			if (inorder_vec[i] == find_value) {
-				left_flag = false;
-				continue;
-			}
-			if (left_flag) {
-				left_inorder_vec.push_back(inorder_vec[i]);
-			} else {
-				right_inorder_vec.push_back(inorder_vec[i]);
-			}
-		}
+    TreeNode* dfs(vector<int>& inorder, int ileft, int iright, vector<int>& preorder, int pleft, int pright) {
+        if (pright < pleft) return NULL;
+        int root_val = preorder[pleft];
+        TreeNode* root = new TreeNode(root_val);
+        if (pright == pleft) return root;
 
+        int iroot = in_map_[root_val];
+        int len = iroot - ileft;
+        root->left = dfs(inorder, ileft, iroot - 1, preorder, pleft + 1, pleft + len);
+        root->right = dfs(inorder, iroot + 1, iright, preorder, pleft + len + 1, pright);
+        return root;
+    }
 };
